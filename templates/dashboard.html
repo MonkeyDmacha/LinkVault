@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LinkVault Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f7fafd;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 60px;
+      height: 100vh;
+      background-color: #ffffff;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 100px;
+      z-index: 10;
+    }
+
+    .sidebar a {
+      color: #38bdf8;
+      margin: 1.5rem 0;
+      font-size: 1.4rem;
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+
+    .sidebar a:hover::after {
+      content: attr(data-label);
+      position: absolute;
+      left: 60px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(255, 255, 255, 0.8);
+      color: #1e293b;
+      padding: 0.3rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .intro {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      gap: 0.25rem;
+      font-size: 5rem;
+      font-weight: 900;
+      opacity: 1;
+      z-index: 10;
+    }
+
+    .stroke-text, .vault-shadow {
+      transition: all 1s ease;
+    }
+
+    .stroke-text {
+      color: transparent;
+      -webkit-text-stroke: 1px #38bdf8;
+      font-style: italic;
+    }
+
+    .vault-shadow {
+      color: black;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .slide-out-left {
+      animation: slideOutLeft 1s ease forwards;
+    }
+
+    .slide-out-right {
+      animation: slideOutRight 1s ease forwards;
+    }
+
+    @keyframes slideOutLeft {
+      to {
+        transform: translateX(-100px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes slideOutRight {
+      to {
+        transform: translateX(100px);
+        opacity: 0;
+      }
+    }
+
+    .fixed-logo {
+      position: fixed;
+      top: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.25rem;
+      font-size: 2.2rem;
+      font-weight: 900;
+      opacity: 0;
+      transition: opacity 1s ease;
+      z-index: 5;
+    }
+
+    .fixed-logo.show {
+      opacity: 1;
+    }
+
+    .stroke-text-static {
+      color: transparent;
+      -webkit-text-stroke: 1px #38bdf8;
+      font-style: italic;
+    }
+
+    .vault-shadow-static {
+      color: black;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .main-content {
+      margin-left: 60px;
+      padding: 2rem;
+      width: 100%;
+    }
+
+    .profile-section, .analytics {
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .profile-section.show, .analytics.show {
+      opacity: 1;
+    }
+
+    .profile-section {
+      margin-top: 8rem;
+      width: 160px;
+      height: 180px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-inline: auto;
+    }
+
+    .profile-pic-container {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: auto;
+    }
+    .profile-pic {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(56, 189, 248, 0.5);
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    }
+    .profile-pic-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.3s;
+      cursor: pointer;
+    }
+    .profile-pic-container:hover .profile-pic-overlay {
+      opacity: 1;
+    }
+    .profile-pic-overlay button {
+      background: #38bdf8;
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .username {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      color: #1e293b;
+      background: transparent;
+      padding: 0.2rem 0.5rem;
+      z-index: 1;
+      font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-shadow: 1px 1px 4px rgba(56,189,248,0.08);
+      transition: text-shadow 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+    .username:hover {
+      color: #38bdf8;
+      text-shadow: 0 0 8px #38bdf8, 0 0 16px #38bdf8, 1px 1px 4px rgba(56,189,248,0.08);
+    }
+
+    .analytics {
+      width: 90%;
+      max-width: 700px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 2rem;
+      margin-inline: auto;
+    }
+
+    .analytics h2 {
+      margin: 0 0 1rem;
+      color: #0f172a;
+    }
+
+    .analytics p {
+      margin: 0.5rem 0;
+      font-weight: 500;
+      color: #334155;
+    }
+
+    @media (max-width: 600px) {
+      .intro {
+        font-size: 3rem;
+      }
+
+      .fixed-logo {
+        font-size: 1.8rem;
+      }
+
+      .profile-pic {
+        width: 100px;
+        height: 100px;
+      }
+
+      .username {
+        font-size: 1rem;
+        letter-spacing: 1px;
+      }
+
+      .analytics {
+        padding: 1.5rem;
+      }
+
+      .sidebar {
+        flex-direction: row;
+        height: auto;
+        width: 100%;
+        padding: 1rem;
+        justify-content: center;
+      }
+
+      .sidebar a:hover::after {
+        display: none;
+      }
+    }
+
+    /* Vault Section */
+    #vaultSection {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(12px);
+      display: none;
+      flex-direction: column;
+      z-index: 999;
+      padding: 2rem 0 0 0;
+      overflow-y: auto;
+      align-items: center;
+    }
+
+    #vaultSection .vault-logo {
+      display: flex;
+      gap: 0.25rem;
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 1.2rem;
+      align-items: center;
+      justify-content: center;
+      color: #1e293b;
+      z-index: 1001;
+    }
+
+    #vaultSection .vault-logo .stroke-text-static {
+      color: transparent;
+      -webkit-text-stroke: 1px #38bdf8;
+      font-style: italic;
+    }
+    #vaultSection .vault-logo .vault-shadow-static {
+      color: black;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    #vaultSection .back {
+      color: #38bdf8;
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.1rem;
+      margin-top: 2rem;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .icon-box {
+      width: 120px;
+      height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.10);
+      backdrop-filter: blur(18px) saturate(180%);
+      border-radius: 1rem;
+      text-align: center;
+      color: #f1f5f9;
+      transition: box-shadow 0.4s, transform 0.4s, opacity 0.4s;
+      opacity: 0;
+      animation: fadeInUp 0.5s ease forwards;
+      padding: 0;
+      box-shadow: 0 2px 8px rgba(30,41,59,0.08);
+    }
+
+    .icon-box .icon-btns {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.7rem;
+      width: 100%;
+    }
+
+    .icon-box button {
+      background: rgba(56, 189, 248, 0.10);
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      font-weight: 600;
+      border-radius: 6px;
+      padding: 0.18rem 0.2rem;
+      font-size: 0.95rem;
+      width: 80%;
+      margin: 0 auto;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      box-sizing: border-box;
+    }
+    .icon-box button:hover {
+      background: #38bdf8;
+      color: #fff;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .icon-box:hover {
+      transform: translateY(-6px) scale(1.04);
+    }
+    .icon-box:nth-child(1):hover { box-shadow: 0 0 25px #FF0000, 0 0 40px #FF0000; }
+    .icon-box:nth-child(2):hover { box-shadow: 0 0 25px #E1306C, 0 0 40px #E1306C; }
+    .icon-box:nth-child(3):hover { box-shadow: 0 0 25px #1877F2, 0 0 40px #1877F2; }
+    .icon-box:nth-child(4):hover { box-shadow: 0 0 25px #FF424D, 0 0 40px #FF424D; }
+    .icon-box:nth-child(5):hover { box-shadow: 0 0 25px #00AFF0, 0 0 40px #00AFF0; }
+    .icon-box:nth-child(6):hover { box-shadow: 0 0 25px #000000, 0 0 40px #000000; }
+    .icon-box:nth-child(7):hover { box-shadow: 0 0 25px #0088CC, 0 0 40px #0088CC; }
+
+    .modal {
+      position: fixed;
+      z-index: 2000;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(31,38,135,0.18);
+      min-width: 320px;
+      max-width: 90vw;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      color: #38bdf8;
+      font-size: 1.5rem;
+      text-align: center;
+    }
+    .modal-content label {
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+      color: #1e293b;
+    }
+    .modal-content input, .modal-content textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      margin-bottom: 0.7rem;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    .modal-content textarea {
+      resize: vertical;
+    }
+    .modal-content .close {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 1.5rem;
+      color: #38bdf8;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1rem;
+    }
+    #linksContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.7rem;
+    }
+    .link-field {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.3rem;
+    }
+    .link-field input {
+      flex: 1;
+      min-width: 0;
+    }
+    .link-field button {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.2rem 0.7rem;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .add-link-btn {
+      background: #38bdf8;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      margin-bottom: 0.7rem;
+      margin-top: 0.2rem;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .add-link-btn:hover {
+      background: #0ea5e9;
+    }
+    .edit-username-icon {
+      margin-left: 0.5rem;
+      color: #38bdf8;
+      font-size: 1.1rem;
+      cursor: pointer;
+      vertical-align: middle;
+      transition: color 0.2s;
+    }
+    .edit-username-icon:hover {
+      color: #0ea5e9;
+    }
+    .link-blue {
+      color: #38bdf8;
+      font-size: 1.3em;
+    }
+    .add-link-inline {
+      margin-left: 0.5em;
+      cursor: pointer;
+      vertical-align: middle;
+      background: none;
+      border: none;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .add-link-inline:hover {
+      color: #0ea5e9;
+    }
+    .save-blue {
+      color: #38bdf8;
+      font-size: 1.3em;
+    }
+    .save-btn {
+      background: none;
+      border: 2px solid #38bdf8;
+      color: #38bdf8;
+      border-radius: 8px;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      font-size: 1.2rem;
+    }
+    .save-btn:hover {
+      background: #e0f2fe;
+      color: #0ea5e9;
+      border-color: #0ea5e9;
+    }
+    .logout-blue {
+      color: #38bdf8;
+      font-size: 1.3em;
+    }
+    .logout-modal-btn {
+      background: none;
+      border: 2px solid #38bdf8;
+      color: #38bdf8;
+      border-radius: 8px;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      font-size: 1.2rem;
+      margin-left: 0.5rem;
+    }
+    .logout-modal-btn:hover {
+      background: #e0f2fe;
+      color: #0ea5e9;
+      border-color: #0ea5e9;
+    }
+    .short-url-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      margin-bottom: 1em;
+    }
+    .short-url-row input {
+      flex: 1;
+      background: #f7fafd;
+      border: 1px solid #38bdf8;
+      border-radius: 6px;
+      padding: 0.4em 0.8em;
+      color: #1e293b;
+      font-size: 1em;
+    }
+    .short-url-row button {
+      background: none;
+      border: 2px solid #38bdf8;
+      color: #38bdf8;
+      border-radius: 8px;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      font-size: 1.2rem;
+    }
+    .short-url-row button:hover {
+      background: #e0f2fe;
+      color: #0ea5e9;
+      border-color: #0ea5e9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar" id="sidebar" style="opacity: 0;">
+    <a href="#" class="bi bi-lock" data-label="Vault" onclick="showVault()"></a>
+    <a href="#" class="bi bi-person" data-label="Edit Profile"></a>
+    <a href="#" class="bi bi-box-arrow-left" data-label="Logout" onclick="logout()"></a>
+    <a href="#" class="bi bi-chat-left" data-label="Contact Us"></a>
+  </div>
+
+  <div class="intro" id="introLogo">
+    <span class="stroke-text" id="link">Link</span>
+    <span class="vault-shadow" id="vault">Vault</span>
+  </div>
+
+  <div class="fixed-logo" id="fixedLogo">
+    <span class="stroke-text-static">Link</span>
+    <span class="vault-shadow-static">Vault</span>
+  </div>
+
+  <div class="main-content">
+    <div class="profile-section" id="profile">
+      <div class="profile-pic-container">
+        <img src="{{ url_for('static', filename='static/assets/gmail.svg') }}" alt="Profile Picture" class="profile-pic" id="profilePicImg">
+        <div class="profile-pic-overlay" id="profilePicOverlay">
+          <button onclick="openPicOptions()">Change</button>
+        </div>
+        <input type="file" id="profilePicInput" accept="image/*" style="display:none" onchange="handleProfilePic(event)">
+      </div>
+      <div class="username">
+        <span id="username">{{ username }}</span>
+      </div>
+    </div>
+
+    <div class="analytics" id="analyticsBox">
+      <h2>Dashboard Overview</h2>
+      <p>Total Links: 42</p>
+      <p>Vault Created: Feb 2025</p>
+      <p>Last Active: 2 hours ago</p>
+      <p>Link Views: 1.2K</p>
+    </div>
+  </div>
+
+  <div id="vaultSection">
+    <div class="vault-logo">
+      <span class="stroke-text-static">Link</span>
+      <span class="vault-shadow-static">Vault</span>
+    </div>
+    <div class="back" onclick="document.getElementById('vaultSection').style.display='none'">←</div>
+    <div class="icon-grid">
+      <div class="icon-box" style="animation-delay: 0.1s"><i class="bi bi-youtube" style="font-size: 2rem; color: #FF0000;"></i>
+        <div class="icon-btns">
+          <button>Add</button><button>Edit</button>
+        </div>
+      </div>
+      <div class="icon-box" style="animation-delay: 0.3s"><i class="bi bi-instagram" style="font-size: 2rem; color: #E1306C;"></i>
+        <div class="icon-btns">
+          <button>Add</button><button>Edit</button>
+        </div>
+      </div>
+      <div class="icon-box" style="animation-delay: 0.5s"><i class="bi bi-facebook" style="font-size: 2rem; color: #1877F2;"></i>
+        <div class="icon-btns">
+          <button>Add</button><button>Edit</button>
+        </div>
+      </div>
+      <div class="icon-box" style="animation-delay: 0.7s"><i class="bi bi-cash" style="font-size: 2rem; color: #FF424D;"></i>
+        <div class="icon-btns">
+          <button>Add</button><button>Edit</button>
+        </div>
+      </div>
+      <div class="icon-box" style="animation-delay: 0.9s"><i class="bi bi-gem" style="font-size: 2rem; color: #00AFF0;"></i>
+        <div class="icon-btns">
+          <button>Add</button><button>Edit</button>
+        </div>
+      </div>
+      <div class="icon-box" style="animation-delay: 1.1s"><i class="bi bi-twitter-x" style="font-size: 2rem; color: #000000;"></i>
+        <div class="icon-btns">
+          <button>Add</button><button>Edit</button>
+        </div>
+      </div>
+      <div class="icon-box" style="animation-delay: 1.3s"><i class="bi bi-telegram" style="font-size: 2rem; color: #0088CC;"></i>
+        <div class="icon-btns">
+          <button>Add</button><button>Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="editProfileModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditProfile()">&times;</span>
+      <h2>Edit Profile</h2>
+      <form id="editProfileForm" onsubmit="saveProfile(event)">
+        <label for="editUsername">Username</label>
+        <input type="text" id="editUsername" name="editUsername" maxlength="20" required>
+        <label for="editBio">Bio</label>
+        <textarea id="editBio" name="editBio" rows="2" maxlength="100"></textarea>
+        <label for="editLinks">Links
+          <i class="bi bi-link link-blue add-link-inline" onclick="addLinkField()" title="Add Link"></i>
+        </label>
+        <div id="linksContainer"></div>
+        <label for="editEmail">Email</label>
+        <input type="email" id="editEmail" name="editEmail" required>
+        <label for="shortUrl">Your Short URL</label>
+        <div class="short-url-row">
+          <input type="text" id="shortUrl" value="https://site.com/u/abc123" readonly>
+          <button type="button" onclick="copyShortUrl()" title="Copy"><i class="bi bi-clipboard"></i></button>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="save-btn" title="Save"><i class="bi bi-bookmarks save-blue"></i></button>
+          <button type="button" class="logout-modal-btn" title="Do not save" onclick="closeEditProfile()"><i class="bi bi-box-arrow-left logout-blue"></i></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    window.onload = () => {
+      const link = document.getElementById("link");
+      const vault = document.getElementById("vault");
+      const intro = document.getElementById("introLogo");
+      const fixedLogo = document.getElementById("fixedLogo");
+      const profile = document.getElementById("profile");
+      const analytics = document.getElementById("analyticsBox");
+      const sidebar = document.getElementById("sidebar");
+
+      setTimeout(() => {
+        link.classList.add("slide-out-left");
+        vault.classList.add("slide-out-right");
+
+        setTimeout(() => {
+          intro.style.display = "none";
+          fixedLogo.classList.add("show");
+          profile.classList.add("show");
+          analytics.classList.add("show");
+          sidebar.style.opacity = "1";
+        }, 1000);
+      }, 2000);
+    };
+
+    function showVault() {
+      const key = prompt("Enter Vault Key:");
+      if (key === "123456") {
+        document.getElementById("vaultSection").style.display = "flex";
+        // Animate icon fade-in
+        const icons = document.querySelectorAll('#vaultSection .icon-box');
+        icons.forEach((icon, i) => {
+          setTimeout(() => {
+            icon.style.opacity = '1';
+          }, i * 200 + 100);
+        });
+      } else {
+        alert("Incorrect Vault Key ❌");
+      }
+    }
+
+    function logout() {
+      window.location.href = '/';
+    }
+
+    function openPicOptions() {
+      document.getElementById('profilePicInput').click();
+    }
+
+    function handleProfilePic(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('profilePicImg').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    document.querySelector('.bi-person').onclick = function() {
+      openEditProfile();
+    };
+
+    function openEditProfile(focusField) {
+      document.getElementById('editProfileModal').style.display = 'flex';
+      // Pre-fill with current values (for demo, static values)
+      document.getElementById('editUsername').value = document.getElementById('username').textContent;
+      document.getElementById('editBio').value = window.profileBio || '';
+      document.getElementById('editEmail').value = window.profileEmail || '';
+      // Links
+      const links = window.profileLinks || [];
+      const linksContainer = document.getElementById('linksContainer');
+      linksContainer.innerHTML = '';
+      links.forEach((link, idx) => {
+        addLinkField(link);
+      });
+      if (links.length === 0) addLinkField();
+      // Focus username if requested
+      if (focusField === 'username') {
+        setTimeout(() => {
+          document.getElementById('editUsername').focus();
+        }, 100);
+      }
+    }
+
+    function closeEditProfile() {
+      document.getElementById('editProfileModal').style.display = 'none';
+    }
+
+    function addLinkField(value = '') {
+      const linksContainer = document.getElementById('linksContainer');
+      const div = document.createElement('div');
+      div.className = 'link-field';
+      div.innerHTML = `<input type="url" placeholder="Link" value="${value}"><button type="button" onclick="this.parentNode.remove()">&times;</button>`;
+      linksContainer.appendChild(div);
+    }
+
+    function saveProfile(e) {
+      e.preventDefault();
+      // Save values in memory (window)
+      const username = document.getElementById('editUsername').value;
+      const bio = document.getElementById('editBio').value;
+      const email = document.getElementById('editEmail').value;
+      const linkInputs = document.querySelectorAll('#linksContainer input');
+      const links = Array.from(linkInputs).map(input => input.value).filter(Boolean);
+      window.profileBio = bio;
+      window.profileEmail = email;
+      window.profileLinks = links;
+      // Update UI
+      document.querySelector('.username').textContent = username;
+      // You can also display bio/email/links elsewhere if needed
+      closeEditProfile();
+    }
+
+   function copyShortUrl() {
+  const input = document.getElementById('shortUrl');
+  navigator.clipboard.writeText(input.value).then(() => {
+    alert("Copied to clipboard!");
+  });
+}
+
+  </script>
+</body>
+</html>
